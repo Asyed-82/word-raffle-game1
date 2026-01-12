@@ -5,23 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Word Raffle Showdown - Play Online</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
-        :root {
-            --primary: #4CAF50;
-            --primary-dark: #2E7D32;
-            --primary-light: #C8E6C9;
-            --accent: #FF9800;
-            --accent-dark: #F57C00;
-            --text: #333333;
-            --text-light: #666666;
-            --bg: #f9f9f9;
-            --card-bg: #ffffff;
-            --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            --radius: 12px;
-            --transition: all 0.3s ease;
-        }
-        
         * {
             margin: 0;
             padding: 0;
@@ -30,111 +19,282 @@
         
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            color: var(--text);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            color: #333;
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            min-height: 90vh;
         }
         
         /* Header */
         .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
+            background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
         .logo {
-            font-family: 'Dancing Script', cursive;
-            font-size: 48px;
-            color: var(--primary-dark);
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            font-size: 28px;
+            font-weight: 700;
         }
         
         .logo span {
-            color: var(--accent);
+            color: #ffd700;
         }
         
-        .tagline {
-            color: var(--text-light);
-            font-size: 18px;
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
         
-        /* Game Container */
-        .game-container {
-            display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 30px;
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            color: #4e54c8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
         }
         
-        @media (max-width: 992px) {
-            .game-container {
-                grid-template-columns: 1fr;
-            }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #388E3C;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #f57c00;
+            transform: translateY(-2px);
+        }
+        
+        /* Login Screen */
+        .login-screen {
+            padding: 60px 40px;
+            text-align: center;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .login-title {
+            font-size: 36px;
+            margin-bottom: 10px;
+            color: #4e54c8;
+        }
+        
+        .login-subtitle {
+            color: #666;
+            margin-bottom: 40px;
+        }
+        
+        .login-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 40px;
+        }
+        
+        .login-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .login-card:hover {
+            border-color: #4e54c8;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .login-icon {
+            font-size: 40px;
+            color: #4e54c8;
+            margin-bottom: 15px;
         }
         
         /* Main Game Area */
         .game-area {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
             padding: 30px;
-            min-height: 600px;
+            display: none;
         }
         
-        /* Game State */
-        .game-state {
-            text-align: center;
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .game-info {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .info-card {
+            background: #f8f9fa;
+            padding: 15px 25px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 150px;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .info-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #4e54c8;
+        }
+        
+        /* Game Modes */
+        .game-modes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .mode-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+        }
+        
+        .mode-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+        
+        .mode-card.active {
+            border-color: #4CAF50;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        }
+        
+        .mode-icon {
+            font-size: 50px;
+            color: #4e54c8;
+            margin-bottom: 20px;
+        }
+        
+        .mode-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .mode-desc {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        /* Game Board */
+        .game-board {
+            display: none;
+        }
+        
+        .game-instruction {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 500;
+            color: #1565c0;
+        }
+        
+        .player-turn {
+            background: #fff3e0;
             padding: 15px;
-            background: var(--primary-light);
-            border-radius: var(--radius);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
             font-size: 20px;
             font-weight: 600;
-            color: var(--primary-dark);
+            color: #e65100;
         }
         
         /* Tickets Grid */
         .tickets-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 15px;
             margin-bottom: 30px;
         }
         
         .ticket {
-            background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
-            border-radius: var(--radius);
+            background: white;
+            border-radius: 10px;
             padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: var(--transition);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             border: 3px solid transparent;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .ticket:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow);
-            border-color: var(--primary);
+            transition: all 0.3s;
         }
         
         .ticket.selected {
-            border-color: var(--accent);
-            background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+            border-color: #4CAF50;
+            background: #e8f5e9;
+            transform: scale(1.05);
         }
         
         .ticket-number {
+            text-align: center;
+            color: #666;
             font-size: 14px;
-            color: var(--text-light);
-            margin-bottom: 10px;
-            font-weight: 500;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
         }
         
         .ticket-words {
@@ -144,324 +304,131 @@
         }
         
         .word {
-            background: var(--bg);
-            padding: 8px;
+            background: #f8f9fa;
+            padding: 10px;
             border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
             font-weight: 500;
-            transition: var(--transition);
         }
         
         .word:hover {
-            background: var(--primary-light);
-            color: var(--primary-dark);
+            background: #e3f2fd;
+            transform: translateY(-2px);
         }
         
         .word.selected {
-            background: var(--accent);
+            background: #4CAF50;
             color: white;
         }
         
-        /* Sidebar */
-        .sidebar {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 25px;
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-        
-        /* Player Cards */
-        .player-card {
-            background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
-            border-radius: var(--radius);
+        /* AI Selection Display */
+        .ai-selection {
+            background: #fff8e1;
             padding: 20px;
-            text-align: center;
-        }
-        
-        .player-card.active {
-            background: linear-gradient(135deg, #C8E6C9 0%, #A5D6A7 100%);
-            border: 2px solid var(--primary);
-        }
-        
-        .player-name {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: var(--primary-dark);
-        }
-        
-        .player-score {
-            font-size: 36px;
-            font-weight: 700;
-            color: var(--primary);
-        }
-        
-        /* Game Controls */
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .btn {
-            padding: 15px 25px;
-            border: none;
-            border-radius: var(--radius);
-            font-family: 'Poppins', sans-serif;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(76, 175, 80, 0.3);
-        }
-        
-        .btn-secondary {
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(255, 152, 0, 0.3);
-        }
-        
-        .btn-outline {
-            background: transparent;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-        }
-        
-        .btn-outline:hover {
-            background: var(--primary-light);
-        }
-        
-        /* Chat Box */
-        .chat-box {
-            background: var(--bg);
-            border-radius: var(--radius);
-            padding: 20px;
-            height: 200px;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .chat-title {
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: var(--text-light);
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .chat-messages {
-            flex-grow: 1;
-            overflow-y: auto;
-            margin-bottom: 15px;
-            padding-right: 10px;
-        }
-        
-        .chat-message {
-            background: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        
-        .chat-input {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .chat-input input {
-            flex-grow: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-family: 'Poppins', sans-serif;
-        }
-        
-        /* Game Stats */
-        .game-stats {
-            background: var(--bg);
-            border-radius: var(--radius);
-            padding: 20px;
-        }
-        
-        .stats-title {
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: var(--text-light);
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .stats-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-        
-        /* Result Modal */
-        .modal {
+            border-radius: 10px;
+            margin-bottom: 20px;
             display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
+        }
+        
+        .ai-selection-title {
+            font-size: 16px;
+            color: #ff6f00;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .ai-selection-details {
+            display: flex;
+            gap: 20px;
             align-items: center;
+        }
+        
+        .ai-ticket {
+            background: #ffecb3;
+            padding: 15px;
+            border-radius: 8px;
+            flex: 1;
+        }
+        
+        .ai-word {
+            background: #ffd54f;
+            padding: 15px;
+            border-radius: 8px;
+            flex: 1;
+            font-weight: 600;
+            font-size: 20px;
+        }
+        
+        /* Guess Controls */
+        .guess-controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
             justify-content: center;
         }
         
-        .modal-content {
-            background: white;
-            border-radius: var(--radius);
-            padding: 40px;
-            max-width: 500px;
-            width: 90%;
+        /* Results Display */
+        .results-display {
+            background: #f1f8e9;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+            display: none;
             text-align: center;
-            animation: modalAppear 0.3s ease;
-        }
-        
-        @keyframes modalAppear {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
         
         .result-icon {
             font-size: 60px;
-            color: var(--primary);
+            color: #4CAF50;
             margin-bottom: 20px;
         }
         
         .result-text {
             font-size: 24px;
             font-weight: 600;
-            margin-bottom: 20px;
-            color: var(--primary-dark);
+            margin-bottom: 15px;
+            color: #2e7d32;
         }
         
         .result-details {
-            color: var(--text-light);
-            margin-bottom: 30px;
-            line-height: 1.6;
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 18px;
         }
         
-        /* Game Modes */
-        .game-modes {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
+        .score-change {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 20px 0;
+            color: #e65100;
         }
         
-        .mode-card {
-            background: white;
-            border-radius: var(--radius);
-            padding: 30px;
-            text-align: center;
-            cursor: pointer;
-            transition: var(--transition);
-            border: 2px solid transparent;
-        }
-        
-        .mode-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow);
-            border-color: var(--primary);
-        }
-        
-        .mode-icon {
-            font-size: 40px;
-            color: var(--primary);
-            margin-bottom: 15px;
-        }
-        
-        .mode-title {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: var(--primary-dark);
-        }
-        
-        .mode-desc {
-            color: var(--text-light);
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .tickets-grid {
-                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            }
-            
-            .game-area, .sidebar {
-                padding: 20px;
-            }
-            
-            .logo {
-                font-size: 36px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .tickets-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .btn {
-                padding: 12px 20px;
-                font-size: 14px;
-            }
-            
-            .player-score {
-                font-size: 28px;
-            }
-        }
-        
-        /* Loading Spinner */
-        .loading {
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.9);
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 200px;
+            z-index: 1000;
+            display: none;
         }
         
         .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid var(--primary-light);
-            border-top: 4px solid var(--primary);
+            width: 60px;
+            height: 60px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4e54c8;
             border-radius: 50%;
             animation: spin 1s linear infinite;
+            margin-bottom: 20px;
         }
         
         @keyframes spin {
@@ -469,55 +436,75 @@
             100% { transform: rotate(360deg); }
         }
         
-        /* Instructions */
-        .instructions {
-            background: white;
-            border-radius: var(--radius);
-            padding: 25px;
+        /* Game Log */
+        .game-log {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
             margin-top: 30px;
-            box-shadow: var(--shadow);
+            max-height: 200px;
+            overflow-y: auto;
         }
         
-        .instructions-title {
-            font-size: 20px;
-            font-weight: 600;
+        .log-title {
+            font-size: 16px;
+            color: #666;
             margin-bottom: 15px;
-            color: var(--primary-dark);
+            font-weight: 600;
+        }
+        
+        .log-entry {
+            padding: 8px 12px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            border-left: 4px solid #4e54c8;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .game-modes {
+                grid-template-columns: 1fr;
+            }
+            
+            .tickets-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            .game-header {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .game-info {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+        
+        /* Alert */
+        .alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
             display: flex;
             align-items: center;
             gap: 10px;
+            z-index: 1001;
+            display: none;
         }
         
-        .instructions-list {
-            list-style-type: none;
-            padding-left: 0;
+        .alert-success {
+            border-left: 5px solid #4CAF50;
         }
         
-        .instructions-list li {
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-        }
-        
-        .instructions-list li:last-child {
-            border-bottom: none;
-        }
-        
-        .instructions-list i {
-            color: var(--primary);
-            margin-top: 3px;
-        }
-        
-        /* Footer */
-        .footer {
-            text-align: center;
-            margin-top: 50px;
-            padding: 20px;
-            color: var(--text-light);
-            font-size: 14px;
-            border-top: 1px solid #eee;
+        .alert-error {
+            border-left: 5px solid #f44336;
         }
     </style>
 </head>
@@ -526,15 +513,124 @@
         <!-- Header -->
         <div class="header">
             <div class="logo">Word Raffle <span>Showdown</span></div>
-            <p class="tagline">Test your word intuition against friends or AI!</p>
+            <div class="user-info" id="userInfo" style="display: none;">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div>
+                    <div id="userName">Guest</div>
+                    <div style="font-size: 12px;" id="userEmail"></div>
+                </div>
+                <button class="btn btn-secondary" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
         </div>
         
-        <!-- Game Container -->
-        <div class="game-container">
-            <!-- Main Game Area -->
-            <div class="game-area" id="gameArea">
-                <div class="game-state" id="gameState">
-                    Welcome to Word Raffle Showdown!
+        <!-- Login Screen -->
+        <div class="login-screen" id="loginScreen">
+            <h1 class="login-title">Word Raffle Showdown</h1>
+            <p class="login-subtitle">Challenge friends or test your skills against AI!</p>
+            
+            <div class="login-options">
+                <div class="login-card" id="googleLogin">
+                    <div class="login-icon">
+                        <i class="fab fa-google"></i>
+                    </div>
+                    <h3>Continue with Google</h3>
+                    <p>Quick sign in with your Google account</p>
+                </div>
+                
+                <div class="login-card" id="emailLogin">
+                    <div class="login-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h3>Sign in with Email</h3>
+                    <p>Use your email and password</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Game Area -->
+        <div class="game-area" id="gameArea">
+            <div class="game-header">
+                <div class="game-info">
+                    <div class="info-card">
+                        <div class="info-label">Round</div>
+                        <div class="info-value" id="currentRound">1/5</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Your Score</div>
+                        <div class="info-value" id="playerScore">100</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">AI Score</div>
+                        <div class="info-value" id="aiScore">100</div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" id="newGameBtn">
+                    <i class="fas fa-plus-circle"></i> New Game
+                </button>
+            </div>
+            
+            <!-- Game Modes -->
+            <div class="game-modes" id="gameModes">
+                <div class="mode-card active" id="singlePlayerMode">
+                    <div class="mode-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3 class="mode-title">Single Player vs AI</h3>
+                    <p class="mode-desc">Play against computer AI. You select words, AI guesses them.</p>
+                    <div style="margin-top: 20px;">
+                        <label style="font-size: 14px; color: #666;">Difficulty:</label>
+                        <select id="aiDifficulty" style="margin-top: 5px; padding: 8px; border-radius: 6px; border: 1px solid #ddd; width: 100%;">
+                            <option value="easy">Easy (AI has 30% accuracy)</option>
+                            <option value="medium" selected>Medium (AI has 50% accuracy)</option>
+                            <option value="hard">Hard (AI has 70% accuracy)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mode-card" id="multiplayerMode">
+                    <div class="mode-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="mode-title">Multiplayer</h3>
+                    <p class="mode-desc">Play with friends online in real-time</p>
+                    <div style="margin-top: 20px;">
+                        <input type="text" id="roomCode" placeholder="Enter room code" style="padding: 8px; border-radius: 6px; border: 1px solid #ddd; width: 100%; margin-bottom: 10px;">
+                        <button class="btn btn-secondary" style="width: 100%;" id="joinRoomBtn">
+                            <i class="fas fa-door-open"></i> Join Room
+                        </button>
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" id="createRoomBtn">
+                            <i class="fas fa-plus"></i> Create New Room
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Game Board -->
+            <div class="game-board" id="gameBoard">
+                <div class="game-instruction" id="gameInstruction">
+                    Player 1 (You), select a word from any ticket
+                </div>
+                
+                <div class="player-turn" id="playerTurn">
+                    Your Turn: Select a Word
+                </div>
+                
+                <!-- AI Selection Display -->
+                <div class="ai-selection" id="aiSelection">
+                    <div class="ai-selection-title">
+                        <i class="fas fa-robot"></i> AI has selected a word:
+                    </div>
+                    <div class="ai-selection-details">
+                        <div class="ai-ticket">
+                            <strong>Ticket:</strong> <span id="aiTicketNumber">#3</span>
+                        </div>
+                        <div class="ai-word">
+                            Word: <span id="aiSelectedWord">APPLE</span>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Tickets Grid -->
@@ -542,213 +638,373 @@
                     <!-- Tickets will be generated here -->
                 </div>
                 
-                <!-- Game Controls -->
-                <div class="controls" id="gameControls">
-                    <button class="btn btn-primary" id="startGameBtn">
-                        <i class="fas fa-play"></i> Start New Game
+                <!-- Guess Controls -->
+                <div class="guess-controls" id="guessControls" style="display: none;">
+                    <button class="btn btn-primary" id="submitGuessBtn">
+                        <i class="fas fa-check"></i> Submit Guess
                     </button>
-                    <button class="btn btn-outline" id="resetGameBtn">
-                        <i class="fas fa-redo"></i> Reset Game
+                    <button class="btn btn-secondary" id="changeSelectionBtn">
+                        <i class="fas fa-undo"></i> Change Selection
                     </button>
                 </div>
-            </div>
-            
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <!-- Player 1 -->
-                <div class="player-card" id="player1Card">
-                    <div class="player-name">Player 1</div>
-                    <div class="player-score" id="player1Score">100</div>
+                
+                <!-- Results Display -->
+                <div class="results-display" id="resultsDisplay">
+                    <div class="result-icon" id="resultIcon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="result-text" id="resultText">Round Complete!</div>
+                    <div class="result-details" id="resultDetails">
+                        You guessed correctly!
+                    </div>
+                    <div class="score-change" id="scoreChange">
+                        +50 Points
+                    </div>
+                    <button class="btn btn-primary" id="nextRoundBtn">
+                        <i class="fas fa-arrow-right"></i> Next Round
+                    </button>
                 </div>
                 
-                <!-- Player 2 -->
-                <div class="player-card" id="player2Card">
-                    <div class="player-name">Player 2</div>
-                    <div class="player-score" id="player2Score">100</div>
-                </div>
-                
-                <!-- Game Stats -->
-                <div class="game-stats">
-                    <div class="stats-title">Game Stats</div>
-                    <div class="stats-item">
-                        <span>Round:</span>
-                        <span id="currentRound">1/5</span>
-                    </div>
-                    <div class="stats-item">
-                        <span>Time Left:</span>
-                        <span id="timeLeft">60s</span>
-                    </div>
-                    <div class="stats-item">
-                        <span>Correct Guesses:</span>
-                        <span id="correctGuesses">0</span>
-                    </div>
-                </div>
-                
-                <!-- Chat Box -->
-                <div class="chat-box">
-                    <div class="chat-title">Game Chat</div>
-                    <div class="chat-messages" id="chatMessages">
-                        <div class="chat-message">System: Welcome to the game!</div>
-                    </div>
-                    <div class="chat-input">
-                        <input type="text" id="chatInput" placeholder="Type a message...">
-                        <button class="btn btn-primary" id="sendChatBtn">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
+                <!-- Game Log -->
+                <div class="game-log">
+                    <div class="log-title">Game Log</div>
+                    <div id="gameLogEntries">
+                        <div class="log-entry">Game started. Good luck!</div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Game Modes -->
-        <div class="game-modes">
-            <div class="mode-card" id="singlePlayerMode">
-                <div class="mode-icon">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <div class="mode-title">Single Player</div>
-                <div class="mode-desc">Play against AI with different difficulty levels</div>
-            </div>
-            
-            <div class="mode-card" id="multiplayerMode">
-                <div class="mode-icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="mode-title">Multiplayer</div>
-                <div class="mode-desc">Challenge friends online in real-time</div>
-            </div>
-            
-            <div class="mode-card" id="localMode">
-                <div class="mode-icon">
-                    <i class="fas fa-passport"></i>
-                </div>
-                <div class="mode-title">Local Play</div>
-                <div class="mode-desc">Pass and play on the same device</div>
-            </div>
-        </div>
-        
-        <!-- Instructions -->
-        <div class="instructions">
-            <div class="instructions-title">
-                <i class="fas fa-info-circle"></i> How to Play
-            </div>
-            <ul class="instructions-list">
-                <li>
-                    <i class="fas fa-check-circle"></i>
-                    <span><strong>Player 1</strong> secretly selects a word from any ticket</span>
-                </li>
-                <li>
-                    <i class="fas fa-search"></i>
-                    <span><strong>Player 2</strong> tries to guess which word was selected</span>
-                </li>
-                <li>
-                    <i class="fas fa-coins"></i>
-                    <span><strong>Correct guess:</strong> +50 points | <strong>Wrong guess:</strong> -25 points</span>
-                </li>
-                <li>
-                    <i class="fas fa-sync-alt"></i>
-                    <span>Players switch roles each round. First to win 3 rounds wins!</span>
-                </li>
-            </ul>
-        </div>
-        
-        <!-- Footer -->
-        <div class="footer">
-            <p>Word Raffle Showdown &copy; 2023 | Play online with friends anywhere!</p>
         </div>
     </div>
     
-    <!-- Result Modal -->
-    <div class="modal" id="resultModal">
-        <div class="modal-content">
-            <div class="result-icon" id="resultIcon">
-                <i class="fas fa-trophy"></i>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="spinner"></div>
+        <div style="font-size: 18px; color: #4e54c8;" id="loadingText">Loading...</div>
+    </div>
+    
+    <!-- Alert -->
+    <div class="alert" id="alert">
+        <i class="fas fa-check-circle"></i>
+        <div id="alertMessage">Operation successful!</div>
+    </div>
+    
+    <!-- Email Login Modal -->
+    <div class="modal" id="emailModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1002; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 40px; border-radius: 15px; max-width: 400px; width: 90%;">
+            <h2 style="margin-bottom: 20px; color: #4e54c8;">Sign in with Email</h2>
+            <input type="email" id="emailInput" placeholder="Email address" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px;">
+            <input type="password" id="passwordInput" placeholder="Password" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px;">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" id="signInBtn" style="flex: 1;">Sign In</button>
+                <button class="btn btn-secondary" id="signUpBtn" style="flex: 1;">Sign Up</button>
             </div>
-            <div class="result-text" id="resultText">Round Complete!</div>
-            <div class="result-details" id="resultDetails">
-                Player 2 guessed correctly! +50 points
-            </div>
-            <button class="btn btn-secondary" id="continueBtn">
-                Continue to Next Round
-            </button>
+            <button class="btn" id="closeEmailModal" style="margin-top: 20px; width: 100%; background: #f8f9fa;">Cancel</button>
         </div>
     </div>
     
-    <!-- Game JavaScript -->
     <script>
-        // Game State Variables
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwT4U3YvR0p8Qb-yxQJ7p6d0d0sDc4KZU",
+            authDomain: "word-raffle-game.firebaseapp.com",
+            projectId: "word-raffle-game",
+            storageBucket: "word-raffle-game.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef1234567890"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Game Variables
+        let currentUser = null;
         let gameState = {
-            mode: 'single', // single, multiplayer, local
+            mode: 'single', // 'single' or 'multiplayer'
             round: 1,
             maxRounds: 5,
-            currentPlayer: 1,
-            phase: 'select', // select, guess
+            phase: 'playerSelect', // 'playerSelect', 'aiSelect', 'playerGuess', 'aiGuess'
+            playerScore: 100,
+            aiScore: 100,
+            playerSelectedWord: null,
+            playerSelectedTicket: null,
+            aiSelectedWord: null,
+            aiSelectedTicket: null,
             tickets: [],
-            selectedTicket: null,
-            selectedWord: null,
-            scores: { player1: 100, player2: 100 },
-            correctGuesses: 0,
-            wrongGuesses: 0,
-            timer: 60,
-            timerInterval: null,
-            aiDifficulty: 'medium', // easy, medium, hard
+            aiDifficulty: 'medium',
             gameActive: false
         };
-        
+
         // Word Database
         const wordDatabase = [
             "APPLE", "BRAVE", "CLOUD", "DREAM", "EAGLE", "FLAME", "GLOW", "HEART", "ICE", "JUMP",
             "KING", "LIGHT", "MOON", "NIGHT", "OCEAN", "PEACE", "QUICK", "RIVER", "STAR", "TIME",
             "UNITY", "VOICE", "WATER", "YOUTH", "ZEBRA", "ANIMAL", "BEAUTY", "COURAGE", "DANCER",
             "ENERGY", "FUTURE", "GARDEN", "HAPPY", "ISLAND", "JOURNEY", "KNIGHT", "LAUGH", "MAGIC",
-            "NATURE", "ORANGE", "POWER", "QUEST", "RAINBOW", "SUNSET", "TRAVEL", "UNIVERSE", "VICTORY",
-            "WISDOM", "EXCITE", "YELLOW", "ADVENTURE", "BUTTERFLY", "CHAMPION", "DIAMOND", "ELEPHANT",
-            "FANTASY", "GALAXY", "HARMONY", "IMAGINE", "JUSTICE", "KITTEN", "LIBERTY", "MYSTERY",
-            "NOVEMBER", "OCTOBER", "PARADISE", "QUALITY", "REFLECT", "SILENCE", "TEMPEST", "UMBRELLA",
-            "VIBRANT", "WHISPER", "XYLOPHONE", "YESTERDAY", "ZEALOUS", "ARTIST", "BALLOON", "CIRCUS",
-            "DOLPHIN", "ECHO", "FIREWORK", "GUITAR", "HORIZON", "INFINITY", "JELLYFISH", "KEYBOARD",
-            "LIGHTHOUSE", "MOUNTAIN", "NEBULA", "OPERA", "PYRAMID", "RADIANT", "SYMPHONY", "TELESCOPE",
-            "UTOPIA", "VOLCANO", "WONDER", "YOGURT", "ZIGZAG", "BREEZE", "CANDLE", "DAZZLE", "ELEGANT"
+            "NATURE", "ORANGE", "POWER", "QUEST", "RAINBOW", "SUNSET", "TRAVEL", "UNIVERSE", "VICTORY"
         ];
-        
+
         // DOM Elements
-        const gameStateEl = document.getElementById('gameState');
-        const ticketsGridEl = document.getElementById('ticketsGrid');
-        const player1ScoreEl = document.getElementById('player1Score');
-        const player2ScoreEl = document.getElementById('player2Score');
-        const player1CardEl = document.getElementById('player1Card');
-        const player2CardEl = document.getElementById('player2Card');
+        const loginScreen = document.getElementById('loginScreen');
+        const gameArea = document.getElementById('gameArea');
+        const userInfo = document.getElementById('userInfo');
+        const userAvatar = document.getElementById('userAvatar');
+        const userName = document.getElementById('userName');
+        const userEmail = document.getElementById('userEmail');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const googleLogin = document.getElementById('googleLogin');
+        const emailLogin = document.getElementById('emailLogin');
+        const gameModes = document.getElementById('gameModes');
+        const gameBoard = document.getElementById('gameBoard');
+        const ticketsGrid = document.getElementById('ticketsGrid');
+        const gameInstruction = document.getElementById('gameInstruction');
+        const playerTurn = document.getElementById('playerTurn');
+        const aiSelection = document.getElementById('aiSelection');
+        const aiTicketNumber = document.getElementById('aiTicketNumber');
+        const aiSelectedWord = document.getElementById('aiSelectedWord');
+        const guessControls = document.getElementById('guessControls');
+        const resultsDisplay = document.getElementById('resultsDisplay');
         const currentRoundEl = document.getElementById('currentRound');
-        const timeLeftEl = document.getElementById('timeLeft');
-        const correctGuessesEl = document.getElementById('correctGuesses');
-        const startGameBtn = document.getElementById('startGameBtn');
-        const resetGameBtn = document.getElementById('resetGameBtn');
-        const resultModal = document.getElementById('resultModal');
-        const resultText = document.getElementById('resultText');
-        const resultDetails = document.getElementById('resultDetails');
-        const resultIcon = document.getElementById('resultIcon');
-        const continueBtn = document.getElementById('continueBtn');
-        const chatMessagesEl = document.getElementById('chatMessages');
-        const chatInput = document.getElementById('chatInput');
-        const sendChatBtn = document.getElementById('sendChatBtn');
-        
-        // Game Mode Elements
+        const playerScoreEl = document.getElementById('playerScore');
+        const aiScoreEl = document.getElementById('aiScore');
+        const newGameBtn = document.getElementById('newGameBtn');
         const singlePlayerMode = document.getElementById('singlePlayerMode');
         const multiplayerMode = document.getElementById('multiplayerMode');
-        const localMode = document.getElementById('localMode');
-        
+        const aiDifficulty = document.getElementById('aiDifficulty');
+        const submitGuessBtn = document.getElementById('submitGuessBtn');
+        const changeSelectionBtn = document.getElementById('changeSelectionBtn');
+        const nextRoundBtn = document.getElementById('nextRoundBtn');
+        const resultIcon = document.getElementById('resultIcon');
+        const resultText = document.getElementById('resultText');
+        const resultDetails = document.getElementById('resultDetails');
+        const scoreChange = document.getElementById('scoreChange');
+        const gameLogEntries = document.getElementById('gameLogEntries');
+        const loadingScreen = document.getElementById('loadingScreen');
+        const loadingText = document.getElementById('loadingText');
+        const alert = document.getElementById('alert');
+        const alertMessage = document.getElementById('alertMessage');
+
         // Initialize Game
-        function initGame() {
-            generateTickets();
-            updateUI();
+        function init() {
+            showLoading('Initializing...');
+            
+            // Check auth state
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    // User is signed in
+                    currentUser = user;
+                    showGame();
+                } else {
+                    // User is signed out
+                    showLogin();
+                }
+                hideLoading();
+            });
+
+            // Setup event listeners
             setupEventListeners();
-            addChatMessage('System', 'Welcome to Word Raffle Showdown! Select a game mode to begin.');
         }
-        
-        // Generate Tickets with Random Words
+
+        // Show Login Screen
+        function showLogin() {
+            loginScreen.style.display = 'block';
+            gameArea.style.display = 'none';
+            userInfo.style.display = 'none';
+        }
+
+        // Show Game Area
+        function showGame() {
+            loginScreen.style.display = 'none';
+            gameArea.style.display = 'block';
+            userInfo.style.display = 'flex';
+            
+            // Update user info
+            userName.textContent = currentUser.displayName || currentUser.email.split('@')[0];
+            userEmail.textContent = currentUser.email;
+            userAvatar.textContent = (currentUser.displayName || currentUser.email[0]).toUpperCase();
+            
+            // Reset game state
+            resetGame();
+        }
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Google Login
+            googleLogin.addEventListener('click', () => {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                auth.signInWithPopup(provider).catch((error) => {
+                    showAlert('Login failed: ' + error.message, 'error');
+                });
+            });
+
+            // Email Login
+            emailLogin.addEventListener('click', () => {
+                document.getElementById('emailModal').style.display = 'flex';
+            });
+
+            document.getElementById('signInBtn').addEventListener('click', () => {
+                const email = document.getElementById('emailInput').value;
+                const password = document.getElementById('passwordInput').value;
+                
+                if (!email || !password) {
+                    showAlert('Please enter email and password', 'error');
+                    return;
+                }
+                
+                auth.signInWithEmailAndPassword(email, password)
+                    .then(() => {
+                        document.getElementById('emailModal').style.display = 'none';
+                    })
+                    .catch((error) => {
+                        showAlert('Sign in failed: ' + error.message, 'error');
+                    });
+            });
+
+            document.getElementById('signUpBtn').addEventListener('click', () => {
+                const email = document.getElementById('emailInput').value;
+                const password = document.getElementById('passwordInput').value;
+                
+                if (!email || !password) {
+                    showAlert('Please enter email and password', 'error');
+                    return;
+                }
+                
+                if (password.length < 6) {
+                    showAlert('Password must be at least 6 characters', 'error');
+                    return;
+                }
+                
+                auth.createUserWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        return userCredential.user.updateProfile({
+                            displayName: email.split('@')[0]
+                        });
+                    })
+                    .then(() => {
+                        document.getElementById('emailModal').style.display = 'none';
+                        showAlert('Account created successfully!', 'success');
+                    })
+                    .catch((error) => {
+                        showAlert('Sign up failed: ' + error.message, 'error');
+                    });
+            });
+
+            document.getElementById('closeEmailModal').addEventListener('click', () => {
+                document.getElementById('emailModal').style.display = 'none';
+            });
+
+            // Logout
+            logoutBtn.addEventListener('click', () => {
+                auth.signOut();
+            });
+
+            // Game Mode Selection
+            singlePlayerMode.addEventListener('click', () => {
+                singlePlayerMode.classList.add('active');
+                multiplayerMode.classList.remove('active');
+                gameState.mode = 'single';
+            });
+
+            multiplayerMode.addEventListener('click', () => {
+                multiplayerMode.classList.add('active');
+                singlePlayerMode.classList.remove('active');
+                gameState.mode = 'multiplayer';
+                showAlert('Multiplayer coming soon! Using single player for now.', 'error');
+            });
+
+            // New Game
+            newGameBtn.addEventListener('click', () => {
+                startNewGame();
+            });
+
+            // AI Difficulty
+            aiDifficulty.addEventListener('change', (e) => {
+                gameState.aiDifficulty = e.target.value;
+            });
+
+            // Submit Guess
+            submitGuessBtn.addEventListener('click', () => {
+                if (!gameState.playerSelectedWord) {
+                    showAlert('Please select a word first', 'error');
+                    return;
+                }
+                
+                if (gameState.phase === 'playerSelect') {
+                    playerSelectComplete();
+                } else if (gameState.phase === 'playerGuess') {
+                    evaluatePlayerGuess();
+                }
+            });
+
+            // Change Selection
+            changeSelectionBtn.addEventListener('click', () => {
+                if (gameState.phase === 'playerSelect') {
+                    clearSelections();
+                    updateGameInstruction('Select a word from any ticket');
+                }
+            });
+
+            // Next Round
+            nextRoundBtn.addEventListener('click', () => {
+                nextRound();
+            });
+        }
+
+        // Start New Game
+        function startNewGame() {
+            resetGame();
+            
+            gameState.mode = singlePlayerMode.classList.contains('active') ? 'single' : 'multiplayer';
+            gameState.aiDifficulty = aiDifficulty.value;
+            gameState.gameActive = true;
+            
+            gameModes.style.display = 'none';
+            gameBoard.style.display = 'block';
+            
+            generateTickets();
+            updateGameUI();
+            
+            addGameLog('New game started!');
+            addGameLog(`Mode: ${gameState.mode === 'single' ? 'Single Player' : 'Multiplayer'}`);
+            addGameLog(`AI Difficulty: ${gameState.aiDifficulty}`);
+        }
+
+        // Reset Game
+        function resetGame() {
+            gameState = {
+                mode: 'single',
+                round: 1,
+                maxRounds: 5,
+                phase: 'playerSelect',
+                playerScore: 100,
+                aiScore: 100,
+                playerSelectedWord: null,
+                playerSelectedTicket: null,
+                aiSelectedWord: null,
+                aiSelectedTicket: null,
+                tickets: [],
+                aiDifficulty: 'medium',
+                gameActive: false
+            };
+            
+            gameModes.style.display = 'grid';
+            gameBoard.style.display = 'none';
+            aiSelection.style.display = 'none';
+            guessControls.style.display = 'none';
+            resultsDisplay.style.display = 'none';
+            
+            ticketsGrid.innerHTML = '';
+            gameLogEntries.innerHTML = '<div class="log-entry">Game started. Good luck!</div>';
+            
+            updateScores();
+            updateRound();
+        }
+
+        // Generate Tickets
         function generateTickets() {
             gameState.tickets = [];
-            ticketsGridEl.innerHTML = '';
+            ticketsGrid.innerHTML = '';
             
             for (let i = 0; i < 10; i++) {
                 const ticket = {
@@ -758,40 +1014,40 @@
                 };
                 gameState.tickets.push(ticket);
                 
-                // Create ticket HTML
                 const ticketEl = document.createElement('div');
                 ticketEl.className = 'ticket';
                 ticketEl.dataset.ticketId = ticket.id;
+                
+                const wordsHtml = ticket.words.map((word, index) => 
+                    `<div class="word" data-ticket-id="${ticket.id}" data-word-index="${index}">${word}</div>`
+                ).join('');
+                
                 ticketEl.innerHTML = `
                     <div class="ticket-number">Ticket #${ticket.id}</div>
-                    <div class="ticket-words">
-                        ${ticket.words.map((word, index) => 
-                            `<div class="word" data-ticket-id="${ticket.id}" data-word-index="${index}">${word}</div>`
-                        ).join('')}
-                    </div>
+                    <div class="ticket-words">${wordsHtml}</div>
                 `;
                 
-                ticketsGridEl.appendChild(ticketEl);
+                ticketsGrid.appendChild(ticketEl);
             }
             
-            // Add click event to words
+            // Add click events to words
             document.querySelectorAll('.word').forEach(wordEl => {
                 wordEl.addEventListener('click', handleWordClick);
             });
         }
-        
-        // Get Random Words from Database
+
+        // Get Random Words
         function getRandomWords(count) {
             const shuffled = [...wordDatabase].sort(() => 0.5 - Math.random());
             return shuffled.slice(0, count);
         }
-        
+
         // Handle Word Click
-        function handleWordClick(event) {
+        function handleWordClick(e) {
             if (!gameState.gameActive) return;
             
-            const ticketId = parseInt(event.currentTarget.dataset.ticketId);
-            const wordIndex = parseInt(event.currentTarget.dataset.wordIndex);
+            const ticketId = parseInt(e.currentTarget.dataset.ticketId);
+            const wordIndex = parseInt(e.currentTarget.dataset.wordIndex);
             const word = gameState.tickets[ticketId - 1].words[wordIndex];
             
             // Clear previous selections
@@ -799,396 +1055,228 @@
             document.querySelectorAll('.word.selected').forEach(w => w.classList.remove('selected'));
             
             // Mark selected
-            event.currentTarget.closest('.ticket').classList.add('selected');
-            event.currentTarget.classList.add('selected');
+            e.currentTarget.closest('.ticket').classList.add('selected');
+            e.currentTarget.classList.add('selected');
             
-            if (gameState.phase === 'select') {
-                // Player is selecting a word
-                gameState.selectedTicket = ticketId;
-                gameState.selectedWord = word;
-                
-                addChatMessage('System', `Player ${gameState.currentPlayer} selected a word from Ticket #${ticketId}`);
-                
-                if (gameState.mode === 'single' && gameState.currentPlayer === 1) {
-                    // AI's turn to select
-                    setTimeout(() => aiSelectWord(), 1000);
-                } else {
-                    // Move to guessing phase
-                    gameState.phase = 'guess';
-                    gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
-                    updateUI();
-                }
-            } else if (gameState.phase === 'guess') {
-                // Player is guessing
-                const isCorrect = word === gameState.selectedWord;
-                
-                if (isCorrect) {
-                    // Correct guess
-                    gameState.scores[`player${gameState.currentPlayer}`] += 50;
-                    gameState.correctGuesses++;
-                    
-                    if (gameState.currentPlayer === 1) {
-                        gameState.scores.player2 -= 25;
-                    } else {
-                        gameState.scores.player1 -= 25;
-                    }
-                    
-                    showResult('Correct Guess!', `Player ${gameState.currentPlayer} guessed correctly! +50 points`, 'success');
-                    addChatMessage('System', `Player ${gameState.currentPlayer} guessed correctly!`);
-                } else {
-                    // Wrong guess
-                    gameState.scores[`player${gameState.currentPlayer}`] -= 25;
-                    gameState.wrongGuesses++;
-                    
-                    if (gameState.currentPlayer === 1) {
-                        gameState.scores.player2 += 50;
-                    } else {
-                        gameState.scores.player1 += 50;
-                    }
-                    
-                    showResult('Wrong Guess!', `Player ${gameState.currentPlayer} guessed wrong! -25 points`, 'error');
-                    addChatMessage('System', `Player ${gameState.currentPlayer} guessed wrong. The word was "${gameState.selectedWord}"`);
-                }
-                
-                // Update scores
-                updateScores();
-                
-                // Check for game end
-                if (gameState.round >= gameState.maxRounds) {
-                    endGame();
-                }
+            // Store selection
+            gameState.playerSelectedWord = word;
+            gameState.playerSelectedTicket = ticketId;
+            
+            // Show guess controls
+            guessControls.style.display = 'flex';
+            
+            if (gameState.phase === 'playerSelect') {
+                updateGameInstruction(`You selected: "${word}" from Ticket #${ticketId}. Click "Submit Guess" when ready.`);
+            } else if (gameState.phase === 'playerGuess') {
+                updateGameInstruction(`You're guessing: "${word}". Click "Submit Guess" to make your guess.`);
             }
         }
-        
-        // AI Logic for Single Player
-        function aiSelectWord() {
-            if (!gameState.gameActive) return;
+
+        // Player Select Complete
+        function playerSelectComplete() {
+            if (!gameState.playerSelectedWord) return;
             
-            // Simple AI: Pick random ticket and word
+            addGameLog(`You selected "${gameState.playerSelectedWord}" from Ticket #${gameState.playerSelectedTicket}`);
+            
+            if (gameState.mode === 'single') {
+                // AI's turn to select
+                gameState.phase = 'aiSelect';
+                updateGameUI();
+                
+                setTimeout(() => {
+                    aiSelectWord();
+                }, 1500);
+            }
+        }
+
+        // AI Select Word
+        function aiSelectWord() {
             const randomTicket = gameState.tickets[Math.floor(Math.random() * gameState.tickets.length)];
             const randomWord = randomTicket.words[Math.floor(Math.random() * randomTicket.words.length)];
             
-            gameState.selectedWord = randomWord;
-            gameState.selectedTicket = randomTicket.id;
+            gameState.aiSelectedWord = randomWord;
+            gameState.aiSelectedTicket = randomTicket.id;
             
-            addChatMessage('AI', 'I have selected my word! Your turn to guess.');
+            // Show AI's selection to player
+            aiSelection.style.display = 'block';
+            aiTicketNumber.textContent = `#${gameState.aiSelectedTicket}`;
+            aiSelectedWord.textContent = gameState.aiSelectedWord;
             
-            // Switch to player guessing
-            gameState.phase = 'guess';
-            gameState.currentPlayer = 1;
-            updateUI();
+            addGameLog(`AI selected a word from Ticket #${gameState.aiSelectedTicket}`);
+            
+            // Move to player guess phase
+            gameState.phase = 'playerGuess';
+            updateGameUI();
+            
+            setTimeout(() => {
+                updateGameInstruction(`AI has selected a word. Now it's your turn to guess which word it is!`);
+            }, 1000);
         }
-        
-        function aiMakeGuess() {
-            if (!gameState.gameActive) return;
+
+        // Evaluate Player Guess
+        function evaluatePlayerGuess() {
+            if (!gameState.playerSelectedWord) return;
             
-            // Simple AI guess based on difficulty
-            let guessWord;
-            const correctWord = gameState.selectedWord;
-            
-            switch (gameState.aiDifficulty) {
-                case 'easy':
-                    // 30% chance to guess correctly
-                    guessWord = Math.random() < 0.3 ? correctWord : getRandomWords(1)[0];
-                    break;
-                case 'medium':
-                    // 50% chance to guess correctly
-                    guessWord = Math.random() < 0.5 ? correctWord : getRandomWords(1)[0];
-                    break;
-                case 'hard':
-                    // 70% chance to guess correctly
-                    guessWord = Math.random() < 0.7 ? correctWord : getRandomWords(1)[0];
-                    break;
-            }
-            
-            const isCorrect = guessWord === correctWord;
+            const isCorrect = gameState.playerSelectedWord === gameState.aiSelectedWord;
             
             if (isCorrect) {
-                gameState.scores.player2 += 50;
-                gameState.scores.player1 -= 25;
-                gameState.correctGuesses++;
-                showResult('AI Guessed Correctly!', 'The AI guessed your word! +50 points for AI', 'error');
-                addChatMessage('AI', 'I guessed your word correctly!');
+                // Player guessed correctly
+                gameState.playerScore += 50;
+                gameState.aiScore -= 25;
+                
+                showResults('Correct!', 'You guessed the AI\'s word correctly!', '+50', 'success');
+                addGameLog(`You guessed correctly! +50 points`);
             } else {
-                gameState.scores.player2 -= 25;
-                gameState.scores.player1 += 50;
-                gameState.wrongGuesses++;
-                showResult('AI Guessed Wrong!', 'The AI guessed wrong! +50 points for you', 'success');
-                addChatMessage('AI', `I guessed "${guessWord}" but it was wrong!`);
+                // Player guessed wrong
+                gameState.playerScore -= 25;
+                gameState.aiScore += 50;
+                
+                showResults('Wrong!', `The AI's word was "${gameState.aiSelectedWord}" from Ticket #${gameState.aiSelectedTicket}`, '-25', 'error');
+                addGameLog(`You guessed wrong. The word was "${gameState.aiSelectedWord}"`);
             }
             
             updateScores();
-            
-            if (gameState.round >= gameState.maxRounds) {
-                endGame();
-            }
+            clearSelections();
+            guessControls.style.display = 'none';
         }
-        
-        // Start New Game
-        function startGame(mode = 'single') {
-            gameState = {
-                mode: mode,
-                round: 1,
-                maxRounds: 5,
-                currentPlayer: 1,
-                phase: 'select',
-                tickets: [],
-                selectedTicket: null,
-                selectedWord: null,
-                scores: { player1: 100, player2: 100 },
-                correctGuesses: 0,
-                wrongGuesses: 0,
-                timer: 60,
-                timerInterval: null,
-                aiDifficulty: 'medium',
-                gameActive: true
-            };
-            
-            generateTickets();
-            updateUI();
-            startTimer();
-            
-            addChatMessage('System', 'New game started! Player 1, select a word from any ticket.');
-            
-            if (mode === 'single') {
-                gameStateEl.textContent = 'Single Player Mode - Select a word for the AI to guess';
-            } else if (mode === 'local') {
-                gameStateEl.textContent = 'Local Multiplayer - Player 1, select a word secretly';
-            }
-        }
-        
-        // Update UI
-        function updateUI() {
-            // Update scores
-            player1ScoreEl.textContent = gameState.scores.player1;
-            player2ScoreEl.textContent = gameState.scores.player2;
-            
-            // Update active player
-            if (gameState.currentPlayer === 1) {
-                player1CardEl.classList.add('active');
-                player2CardEl.classList.remove('active');
-            } else {
-                player2CardEl.classList.add('active');
-                player1CardEl.classList.remove('active');
-            }
-            
-            // Update round
-            currentRoundEl.textContent = `${gameState.round}/${gameState.maxRounds}`;
-            
-            // Update correct guesses
-            correctGuessesEl.textContent = gameState.correctGuesses;
-            
-            // Update game state text
-            if (gameState.phase === 'select') {
-                gameStateEl.textContent = `Player ${gameState.currentPlayer}, select a word secretly`;
-            } else {
-                gameStateEl.textContent = `Player ${gameState.currentPlayer}, guess which word was selected`;
-            }
-        }
-        
-        // Update Scores
-        function updateScores() {
-            player1ScoreEl.textContent = gameState.scores.player1;
-            player2ScoreEl.textContent = gameState.scores.player2;
-            correctGuessesEl.textContent = gameState.correctGuesses;
-        }
-        
-        // Start Timer
-        function startTimer() {
-            clearInterval(gameState.timerInterval);
-            gameState.timer = 60;
-            
-            gameState.timerInterval = setInterval(() => {
-                gameState.timer--;
-                timeLeftEl.textContent = `${gameState.timer}s`;
-                
-                if (gameState.timer <= 0) {
-                    clearInterval(gameState.timerInterval);
-                    // Time's up - auto guess wrong
-                    if (gameState.phase === 'guess') {
-                        gameState.scores[`player${gameState.currentPlayer}`] -= 25;
-                        updateScores();
-                        showResult('Time\'s Up!', 'No guess made in time! -25 points', 'error');
-                    }
-                }
-            }, 1000);
-        }
-        
-        // Show Result Modal
-        function showResult(title, details, type = 'success') {
+
+        // Show Results
+        function showResults(title, details, points, type) {
             resultText.textContent = title;
             resultDetails.textContent = details;
+            scoreChange.textContent = points;
             
             if (type === 'success') {
                 resultIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
                 resultIcon.style.color = '#4CAF50';
+                scoreChange.style.color = '#4CAF50';
             } else {
                 resultIcon.innerHTML = '<i class="fas fa-times-circle"></i>';
                 resultIcon.style.color = '#f44336';
+                scoreChange.style.color = '#f44336';
             }
             
-            resultModal.style.display = 'flex';
-            
-            // Auto-hide after 3 seconds for single player
-            if (gameState.mode === 'single' && type === 'error') {
-                setTimeout(() => {
-                    resultModal.style.display = 'none';
-                    nextRound();
-                }, 3000);
-            }
+            resultsDisplay.style.display = 'block';
         }
-        
+
         // Next Round
         function nextRound() {
             gameState.round++;
-            gameState.phase = 'select';
-            gameState.selectedTicket = null;
-            gameState.selectedWord = null;
-            gameState.currentPlayer = 1;
             
-            // Reset timer
-            startTimer();
-            
-            // Generate new tickets
-            generateTickets();
-            updateUI();
-            
-            resultModal.style.display = 'none';
-            
-            if (gameState.mode === 'single') {
-                addChatMessage('System', `Round ${gameState.round} - Select a word for the AI to guess`);
-            } else {
-                addChatMessage('System', `Round ${gameState.round} - Player 1, select a word`);
+            if (gameState.round > gameState.maxRounds) {
+                endGame();
+                return;
             }
+            
+            resultsDisplay.style.display = 'none';
+            aiSelection.style.display = 'none';
+            
+            gameState.phase = 'playerSelect';
+            gameState.playerSelectedWord = null;
+            gameState.aiSelectedWord = null;
+            
+            generateTickets();
+            updateGameUI();
+            
+            addGameLog(`Starting round ${gameState.round}`);
         }
-        
+
         // End Game
         function endGame() {
+            const winner = gameState.playerScore > gameState.aiScore ? 'You win!' : 'AI wins!';
+            const message = `Final Score: You ${gameState.playerScore} - AI ${gameState.aiScore}`;
+            
+            showResults('Game Over!', `${winner} ${message}`, '', 'info');
+            addGameLog(`Game ended. ${winner} ${message}`);
+            
             gameState.gameActive = false;
-            clearInterval(gameState.timerInterval);
             
-            const winner = gameState.scores.player1 > gameState.scores.player2 ? 1 : 2;
-            const winnerScore = Math.max(gameState.scores.player1, gameState.scores.player2);
-            
-            resultIcon.innerHTML = '<i class="fas fa-trophy"></i>';
-            resultIcon.style.color = '#FF9800';
-            resultText.textContent = 'Game Over!';
-            resultDetails.textContent = `Player ${winner} wins with ${winnerScore} points!`;
-            resultModal.style.display = 'flex';
-            
-            addChatMessage('System', `Game over! Player ${winner} wins! Final score: Player 1 - ${gameState.scores.player1}, Player 2 - ${gameState.scores.player2}`);
-            
-            // Change continue button to restart
-            continueBtn.textContent = 'Play Again';
-            continueBtn.onclick = () => {
-                resultModal.style.display = 'none';
-                startGame(gameState.mode);
+            // Change next round button to play again
+            nextRoundBtn.innerHTML = '<i class="fas fa-redo"></i> Play Again';
+            nextRoundBtn.onclick = () => {
+                startNewGame();
             };
         }
-        
-        // Add Chat Message
-        function addChatMessage(sender, message) {
-            const messageEl = document.createElement('div');
-            messageEl.className = 'chat-message';
-            messageEl.innerHTML = `<strong>${sender}:</strong> ${message}`;
+
+        // Update Game UI
+        function updateGameUI() {
+            updateRound();
+            updateScores();
             
-            chatMessagesEl.appendChild(messageEl);
-            chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
-        }
-        
-        // Setup Event Listeners
-        function setupEventListeners() {
-            // Start Game Button
-            startGameBtn.addEventListener('click', () => {
-                startGame(gameState.mode);
-            });
-            
-            // Reset Game Button
-            resetGameBtn.addEventListener('click', () => {
-                if (confirm('Are you sure you want to reset the game?')) {
-                    startGame(gameState.mode);
-                }
-            });
-            
-            // Continue Button
-            continueBtn.addEventListener('click', () => {
-                if (gameState.round >= gameState.maxRounds) {
-                    startGame(gameState.mode);
-                } else {
-                    nextRound();
-                }
-            });
-            
-            // Game Mode Selection
-            singlePlayerMode.addEventListener('click', () => {
-                gameState.mode = 'single';
-                startGame('single');
-                singlePlayerMode.style.borderColor = '#4CAF50';
-                multiplayerMode.style.borderColor = 'transparent';
-                localMode.style.borderColor = 'transparent';
-            });
-            
-            multiplayerMode.addEventListener('click', () => {
-                alert('Multiplayer mode coming soon! Starting single player instead.');
-                gameState.mode = 'single';
-                startGame('single');
-            });
-            
-            localMode.addEventListener('click', () => {
-                gameState.mode = 'local';
-                startGame('local');
-                singlePlayerMode.style.borderColor = 'transparent';
-                multiplayerMode.style.borderColor = 'transparent';
-                localMode.style.borderColor = '#4CAF50';
-            });
-            
-            // Chat
-            sendChatBtn.addEventListener('click', sendChatMessage);
-            chatInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    sendChatMessage();
-                }
-            });
-            
-            // Close modal when clicking outside
-            resultModal.addEventListener('click', (e) => {
-                if (e.target === resultModal) {
-                    resultModal.style.display = 'none';
-                }
-            });
-        }
-        
-        // Send Chat Message
-        function sendChatMessage() {
-            const message = chatInput.value.trim();
-            if (message) {
-                addChatMessage('You', message);
-                chatInput.value = '';
-                
-                // Auto-reply in single player mode
-                if (gameState.mode === 'single' && gameState.gameActive) {
-                    setTimeout(() => {
-                        const responses = [
-                            "Good choice!",
-                            "Interesting word...",
-                            "I'm ready to guess!",
-                            "Let's see if I can figure it out!",
-                            "Hmm, challenging word!"
-                        ];
-                        const response = responses[Math.floor(Math.random() * responses.length)];
-                        addChatMessage('AI', response);
-                    }, 1000);
-                }
+            if (gameState.phase === 'playerSelect') {
+                updateGameInstruction('Your turn: Select a word from any ticket for the AI to guess');
+                playerTurn.textContent = 'Your Turn: Select a Word';
+            } else if (gameState.phase === 'aiSelect') {
+                updateGameInstruction('AI is selecting a word...');
+                playerTurn.textContent = 'AI\'s Turn: Selecting Word';
+            } else if (gameState.phase === 'playerGuess') {
+                updateGameInstruction('Your turn: Guess which word the AI selected');
+                playerTurn.textContent = 'Your Turn: Guess AI\'s Word';
             }
         }
-        
-        // Initialize the game when page loads
-        document.addEventListener('DOMContentLoaded', initGame);
-        
-        // Make game available globally for browser console debugging
+
+        // Update Scores
+        function updateScores() {
+            playerScoreEl.textContent = gameState.playerScore;
+            aiScoreEl.textContent = gameState.aiScore;
+        }
+
+        // Update Round
+        function updateRound() {
+            currentRoundEl.textContent = `${gameState.round}/${gameState.maxRounds}`;
+        }
+
+        // Update Game Instruction
+        function updateGameInstruction(text) {
+            gameInstruction.textContent = text;
+        }
+
+        // Clear Selections
+        function clearSelections() {
+            document.querySelectorAll('.ticket.selected').forEach(t => t.classList.remove('selected'));
+            document.querySelectorAll('.word.selected').forEach(w => w.classList.remove('selected'));
+            gameState.playerSelectedWord = null;
+            gameState.playerSelectedTicket = null;
+        }
+
+        // Add Game Log Entry
+        function addGameLog(message) {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.textContent = message;
+            gameLogEntries.appendChild(logEntry);
+            gameLogEntries.scrollTop = gameLogEntries.scrollHeight;
+        }
+
+        // Show Loading
+        function showLoading(text) {
+            loadingText.textContent = text;
+            loadingScreen.style.display = 'flex';
+        }
+
+        // Hide Loading
+        function hideLoading() {
+            loadingScreen.style.display = 'none';
+        }
+
+        // Show Alert
+        function showAlert(message, type) {
+            alertMessage.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'flex';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 3000);
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Make functions available globally for debugging
         window.gameState = gameState;
-        window.startGame = startGame;
-        window.addChatMessage = addChatMessage;
+        window.startNewGame = startNewGame;
+        window.addGameLog = addGameLog;
     </script>
 </body>
 </html>
